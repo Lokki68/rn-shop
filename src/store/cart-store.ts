@@ -5,9 +5,10 @@ import { PRODUCTS } from '../../assets/products'
 type CartItemType = {
   id: number
   title: string
-  image: any
+  heroImage: any
   price: number
   quantity: number
+  maxQuantity: number
 }
 type CartState = {
   items: CartItemType[]
@@ -17,6 +18,7 @@ type CartState = {
   decrementItem: (id: number) => void
   getTotalPrice: () => string
   getItemCount: () => number
+  resetCart: () => void
 }
 
 const initialCartItems: CartItemType[] = []
@@ -80,5 +82,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     const {items} = get()
 
     return items.reduce((total, item) => total + item.quantity, 0)
+  },
+  resetCart: () => {
+    set({
+      items: initialCartItems
+    })
   }
 }))

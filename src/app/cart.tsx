@@ -1,6 +1,62 @@
-import { View, Text, StyleSheet, Alert } from 'react-native'
+import { View, Text, StyleSheet, Alert, Platform, TouchableOpacity, FlatList, Image } from 'react-native'
 import { useCartStore } from '../store/cart-store';
+import { StatusBar } from 'expo-status-bar';
 
+
+type CartItemType = {
+  id: number
+  title: string
+  heroImage: any
+  price: number
+  quantity: number
+  maxQuantity: number
+}
+
+type CartItemProps = {
+  item: CartItemType
+  onRemove: (id: number) => void
+  onIncrement: (id: number) => void
+  onDecrement: (id: number) => void
+}
+
+const CartItem = ({
+  item, 
+  onRemove,
+  onIncrement,
+  onDecrement
+}: CartItemProps) => {
+  return (
+    <View style={styles.cartItem} >
+      <Image source={item.heroImage} style={styles.itemImage} />
+      <View style={styles.itemDetails} >
+        <Text style={styles.itemTitle} >{item.title}</Text>
+        <Text style={styles.itemPrice} >{item.price}</Text>
+        <View style={styles.quantityContainer} >
+          <TouchableOpacity
+            onPress={() => onDecrement(item.id)}
+            style={styles.quantityButton}
+          >
+            <Text style={styles.quantityButtonText} >-</Text>
+          </TouchableOpacity>
+          <Text style={styles.itemQuantity} >{item.quantity}</Text>
+          <TouchableOpacity
+            onPress={() => onIncrement(item.id)}
+            style={styles.quantityButton}
+          >
+            <Text style={styles.quantityButtonText} >+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        onPress={() => onRemove(item.id)}
+        style={styles.removeButton}
+      >
+        <Text style={styles.removeButtonText} >Remove</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
 export default function Cart() {
 
   const {
@@ -12,12 +68,36 @@ export default function Cart() {
   } = useCartStore()
 
   const handleCheckout = () => {
-    Alert.alert('Processing to Checkout', `Total: ${getTotalPrice()}`)
+    Alert.alert('Processing to Checkout', `Total: $${getTotalPrice()}`)
   }
 
   return (
     <View style={styles.container} >
-      <Text>Cart</Text>
+      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+
+      <FlatList
+        data={items}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <CartItem 
+            item={item}
+            onRemove={removeItem}
+            onIncrement={incrementItem}
+            onDecrement={decrementItem}
+          />
+        )}
+        contentContainerStyle={styles.cartList}
+      />
+
+      <View style={styles.footer} >
+        <Text style={styles.totalText} >Total: ${getTotalPrice()}</Text>
+        <TouchableOpacity
+          onPress={handleCheckout}
+          style={styles.checkoutButton}
+        >
+          <Text style={styles.checkoutButtonText} >Checkout</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }

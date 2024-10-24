@@ -2,6 +2,10 @@ import { Controller, useForm } from 'react-hook-form'
 import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity } from 'react-native'
 import {z} from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { supabase } from '../lib/supabase'
+import { Toast } from 'react-native-toast-notifications'
+import { useAuth } from '../providers/auth-provider'
+import { Redirect } from 'expo-router'
 
 const authSchema = z.object({
   email: z.string().email({message: 'Invalid email address'}),
@@ -9,7 +13,6 @@ const authSchema = z.object({
 })
 
 export default function Auth() {
-
 
   const {control, handleSubmit, formState } = useForm({
     resolver: zodResolver(authSchema),
@@ -19,13 +22,37 @@ export default function Auth() {
     }
   })
 
-  const signIn = (data: z.infer<typeof authSchema>) => {
-    console.log(data);
+  const signIn = async (data: z.infer<typeof authSchema>) => {
+
+    const {session} = useAuth()
+
+    if(session) return <Redirect href='/shop' />
+
+    const {error} = await supabase.auth.signInWithPassword(data)
+
+    if (error) {
+      alert(error.message)
+    } else {
+      Toast.show('Signed In Successfully!', {
+        type: 'success',
+        placement: 'top',
+        duration: 1500
+      })
+    }
   }
 
-  const signUp = (data: z.infer<typeof authSchema>) => {
-    console.log(data);
-    
+  const signUp = async (data: z.infer<typeof authSchema>) => {
+    const {error} = await supabase.auth.signUp(data)
+
+    if (error) {
+      alert(error.message)
+    } else {
+      Toast.show('Signed Up Successfully!', {
+        type: 'success',
+        placement: 'top',
+        duration: 1500
+      })
+    }
   }
 
   return (
